@@ -16,6 +16,12 @@ mkdir src/components
 touch Header.jsx Skills.jsx Contact.jsx
 ```
 
+#### 画像ファイルを配置
+
+```
+mkdir images
+```
+
 
 npm start
 
