@@ -1,40 +1,39 @@
-// import { useEffect, useState } from 'react';
+import Circle from 'react-circle';
 import { useEffect, useReducer } from 'react';
- import axios from 'axios';
- import { skillReducer, initialState, actionTypes } from '../reducers/skillReducer';
+import axios from 'axios';
+import { skillReducer, initialState, actionTypes } from '../reducers/skillReducer';
+import { requestStates } from '../constants';
+
 
 export const Skills = () => {
-  // const outputTest = () => { console.log('TEST'); };
-
-  // useEffect(outputTest);
-  // useEffect(() => { axios.get('URL') }, []);
-  // const [data, setData] = useState(null);
-  // const [languageList, setLanguageList] = useState([]);
   const [state, dispatch] = useReducer(skillReducer, initialState);
-  console.log(languageList);
+
+  const converseCountToPercentage = (count) => {
+    if (count > 10) { return 100; }
+    return count * 10;
+  };
+
+  const sortedLanguageList = () => (
+    state.languageList.sort((firstLang, nextLang) =>  nextLang.count - firstLang.count)
+  )
+
   useEffect(() => {
     dispatch({ type: actionTypes.fetch });
     axios.get('https://api.github.com/users/JAMChannel/repos')
       .then((response) => {
-        const languageList = response.data.map(res => res.language);
-        const countedLanguageList = generateLanguageCountObj(languageList);
+        const languageList = response.data.map(res => res.language)
+        const countedLanguageList = generateLanguageCountObj(languageList)
         dispatch({ type: actionTypes.success, payload: { languageList: countedLanguageList } });
       })
       .catch(() => {
         dispatch({ type: actionTypes.error });
       });
-    // axios.get('https://api.github.com/users/JAMChannel/repos')
-    //   .then((response) => {
-    //     const languageList = response.data.map(res => res.language);
-    //     const countedLanguageList = generateLanguageCountObj(languageList);
-    //     setLanguageList(countedLanguageList);
-    //   });
-  }, []);
+   }, []);
 
   const generateLanguageCountObj = (allLanguageList) => {
     const notNullLanguageList = allLanguageList.filter(language => language != null);
-    const uniqueLanguageList = [...new Set(notNullLanguageList)];
- 
+    const uniqueLanguageList = [...new Set(notNullLanguageList)]
+
     return uniqueLanguageList.map(item => {
       return {
         language: item,
@@ -42,8 +41,6 @@ export const Skills = () => {
       }
     });
   };
-  // useEffect(() => {axios.get('https://api.github.com/users/USER_NAME/repos').then((response) => setData(response)) }, []);
-  // useEffect(() => { axios.get('https://api.github.com/users/JAMChannel/repos').then((response) => console.log(response)) }, []);
 
   return (
     <div id="skills">
@@ -52,6 +49,32 @@ export const Skills = () => {
           <h2>Skills</h2>
         </div>
         <div className="skills-container">
+        {
+            state.requestState === requestStates.loading && (
+              <p className="description">取得中...</p>
+            )
+          }
+       {
+            state.requestState === requestStates.success && (
+              // state.languageList.map((item, index) => (
+              sortedLanguageList().map((item, index) => (
+                // <div key={index}>
+                <div className="skill-item" key={index}>
+                  <p className="description"><strong>{item.language}</strong></p>
+                  <Circle
+                    animate
+                    progress={converseCountToPercentage(item.count)}
+                  />
+                </div>
+              ))
+            )
+          }
+        {
+           state.requestState === requestStates.error && (
+             <p className="description">エラーが発生しました</p>
+           )
+         }
+          {/* ここにステートを参照するViewを追加します */}
         </div>
       </div>
     </div>
